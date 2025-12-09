@@ -1,0 +1,137 @@
+# 批量预测使用说明
+
+## 功能概述
+
+新增的 `/predict/batch` 端点支持批量预测多个分子的质谱，并将结果导出为 Excel 文件，方便后续分析。
+
+## API 端点
+
+### POST /predict/batch
+
+批量预测多个分子的质谱。
+
+#### 请求参数
+
+- **file** (multipart/form-data, 必需): 包含分子 SMILES 的文本文件
+- **prob_thresh** (query parameter, 可选): 概率阈值，默认为 `0.001`
+
+#### 输入文件格式
+
+支持两种格式：
+
+**格式 1：ID + SMILES（推荐）**
+```
+M1 CC(C)C(N)C(=O)O
+M2 CCO
+M3 CC(=O)O
+M4 c1ccccc1
+```
+
+**格式 2：仅 SMILES（自动生成 ID）**
+```
+CC(C)C(N)C(=O)O
+CCO
+CC(=O)O
+c1ccccc1
+```
+
+#### 响应
+
+- **Content-Type**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- **Content-Disposition**: `attachment; filename=xxx_results.xlsx`
+- **Body**: Excel 文件（二进制）
+
+#### Excel 输出格式
+
+Excel 文件包含以下列：
+
+| ID | SMILES | InChiKey | Formula | PMass | Energy Level | m/z | Intensity | Fragment ID | Annotation |
+|----|--------|----------|---------|-------|--------------|-----|-----------|-------------|------------|
+| M1 | CC(C)C(N)C(=O)O | ... | C5H11NO2 | 118.08625 | 0 | 55.05423 | 11.21 | 19 | 9.1697 |
+| M1 | CC(C)C(N)C(=O)O | ... | C5H11NO2 | 118.08625 | 0 | 72.08078 | 100.00 | 27 | 81.815 |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
+
+**说明：**
+- 每个分子的每个碎片占一行
+- 如果某个分子没有碎片，仍会输出基本信息行
+- Energy Level: 0, 1, 2 分别对应不同的碰撞能量级别
+
+## 使用示例
+
+### 使用 curl
+
+```bash
+# 使用示例文件
+curl -X POST "http://localhost:5001/predict/batch?prob_thresh=0.001" \
+  -F "file=@example_input.txt" \
+  -o results.xlsx
+
+# 使用自定义文件
+curl -X POST "http://localhost:5001/predict/batch" \
+  -F "file=@my_molecules.txt" \
+  -o my_results.xlsx
+```
+
+### 使用 Python
+
+```python
+import requests
+
+url = "http://localhost:5001/predict/batch"
+params = {"prob_thresh": "0.001"}
+
+with open("example_input.txt", "rb") as f:
+    files = {"file": f}
+    response = requests.post(url, params=params, files=files)
+    
+    if response.status_code == 200:
+        with open("results.xlsx", "wb") as out:
+            out.write(response.content)
+        print("预测完成，结果已保存到 results.xlsx")
+    else:
+        print(f"错误: {response.status_code} - {response.text}")
+```
+
+### 使用 JavaScript/Node.js
+
+```javascript
+const FormData = require('form-data');
+const fs = require('fs');
+const axios = require('axios');
+
+const form = new FormData();
+form.append('file', fs.createReadStream('example_input.txt'));
+
+axios.post('http://localhost:5001/predict/batch?prob_thresh=0.001', form, {
+  headers: form.getHeaders(),
+  responseType: 'arraybuffer'
+})
+.then(response => {
+  fs.writeFileSync('results.xlsx', response.data);
+  console.log('预测完成，结果已保存到 results.xlsx');
+})
+.catch(error => {
+  console.error('错误:', error.message);
+});
+```
+
+## 示例文件
+
+项目包含 `example_input.txt` 文件，包含 10 个示例分子，可以直接用于测试。
+
+## 注意事项
+
+1. 文件大小限制：默认最大 10MB
+2. 处理时间：批量预测可能需要较长时间，取决于分子数量
+3. 结果格式：Excel 文件使用 `.xlsx` 格式，可用 Excel、LibreOffice 等打开
+4. 错误处理：如果某个分子预测失败，会在响应中返回错误信息
+
+## 与单分子预测的区别
+
+| 特性 | /predict | /predict/batch |
+|------|----------|----------------|
+| 输入方式 | form-data (smiles参数) | 文件上传 |
+| 输出格式 | 文本 | Excel |
+| 处理数量 | 单个分子 | 多个分子 |
+| 适用场景 | 快速测试 | 批量分析 |
+

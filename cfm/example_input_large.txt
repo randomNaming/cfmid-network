@@ -1,0 +1,50 @@
+# 示例批量预测输入文件
+# 格式：ID SMILES
+# 也可以只写 SMILES，系统会自动生成 ID
+
+# 氨基酸类
+M1 CC(C)C(N)C(=O)O
+M2 CC(C)(C)C(N)C(=O)O
+M3 C[C@@H](N)C(=O)O
+M4 CC(C)[C@H](N)C(=O)O
+
+# 醇类
+M5 CCO
+M6 CC(C)O
+M7 CC(C)(C)O
+M8 C1CCC(CC1)O
+
+# 酸类
+M9 CC(=O)O
+M10 CCOC(=O)O
+M11 CC(C)C(=O)O
+
+# 芳香族
+M12 c1ccccc1
+M13 c1ccc2ccccc2c1
+M14 Cc1ccccc1
+M15 CC1=CC=C(C=C1)O
+
+# 胺类
+M16 CCN(CC)CC
+M17 CC(C)N
+M18 CCN
+
+# 酮类
+M19 CC(=O)C
+M20 CC(=O)CC
+
+# 醛类
+M21 CC(=O)O
+M22 c1ccc(C=O)cc1
+
+# 酯类
+M23 CCOC(=O)C
+M24 CC(C)OC(=O)C
+
+# 其他
+M25 CC(C)CC1=CC=C(C=C1)C(C)C(=O)O
+M26 C1CCCCC1
+M27 CC(C)(C)C
+M28 C1CCNCC1
+

@@ -5,11 +5,11 @@ ENV CGO_ENABLED=0
 
 WORKDIR /cfmid
 
-COPY go.mod go.sum ./
-RUN go mod tidy
+COPY go.mod ./
+RUN go mod download
 
 COPY . .
-RUN go build -o cfm-server wrapper.go
+RUN go get github.com/xuri/excelize/v2 && go mod tidy && go build -o cfm-server wrapper.go
 
 FROM wishartlab/cfmid:latest
 WORKDIR /cfmid
