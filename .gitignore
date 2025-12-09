@@ -82,3 +82,8 @@ ENV/
 # PowerShell
 *.ps1.bak
 
+# Personal config files
+git-config.ini
+*.ini
+!go.work.ini
+
